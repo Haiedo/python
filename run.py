@@ -1,8 +1,18 @@
-import os
-from app import create_app
+from flask import Flask
 
-config_name = os.getenv('FLASK_ENV', 'development')
-app = create_app(config_name)
+app = Flask(__name__)  # PHẢI TÊN "app"
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+@app.route("/")
+def home():
+    return {"message": "Hello from Flask on Vercel! 🚀"}
+
+# Thêm các route khác của bạn ở đây
+# Ví dụ:
+# @app.route("/api")
+# def api():
+#     return {"status": "ok"}
+
+# === QUAN TRỌNG: KHÔNG DÙNG app.run() ===
+# XÓA DÒNG NÀY NẾU CÓ:
+# if __name__ == "__main__":
+#     app.run(debug=True)
