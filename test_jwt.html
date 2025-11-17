@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Token Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .info {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 JWT Token Test Tool</h1>
+
+        <!-- Step 1: Login -->
+        <div class="section">
+            <h2>Bước 1: Đăng nhập</h2>
+            <input type="text" id="username" placeholder="Username hoặc email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Đăng nhập</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Step 2: Test Token -->
+        <div class="section">
+            <h2>Bước 2: Test Token</h2>
+            <div class="info result" style="margin-bottom: 15px;">
+                Token hiện tại: <span id="currentToken">Chưa có</span>
+            </div>
+            <button onclick="testToken()">Test Token</button>
+            <div id="testResult"></div>
+        </div>
+
+        <!-- Step 3: Test Dashboard -->
+        <div class="section">
+            <h2>Bước 3: Test Dashboard API</h2>
+            <button onclick="testDashboard()">Gọi Dashboard API</button>
+            <div id="dashboardResult"></div>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="section">
+            <h2>Debug Info</h2>
+            <button onclick="showDebugInfo()">Hiển thị Debug Info</button>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+
+        function showResult(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.className = 'result ' + (isSuccess ? 'success' : 'error');
+            element.textContent = message;
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    localStorage.setItem('access_token', data.access_token);
+                    document.getElementById('currentToken').textContent = data.access_token.substring(0, 50) + '...';
+                    showResult('loginResult', '✅ Đăng nhập thành công!\n\nToken: ' + data.access_token.substring(0, 100) + '...', true);
+                } else {
+                    showResult('loginResult', '❌ Đăng nhập thất bại: ' + JSON.stringify(data, null, 2), false);
+                }
+            } catch (error) {
+                showResult('loginResult', '❌ Lỗi: ' + error.message, false);
+            }
+        }
+
+        async function testToken() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                showResult('testResult', '❌ Chưa có token. Vui lòng đăng nhập trước!', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/test-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('testResult', '✅ Token hợp lệ!\n\n' + JSON.stringify(data, null, 2), true);
+                } else {
+                    showResult('testResult', '❌ Token không hợp lệ:\n\n' + JSON.stringify(data, null, 2), false);
+                }
+            } catch (error) {
+                showResult('testResult', '❌ Lỗi: ' + error.message, false);
+            }
+        }
+
+        async function testDashboard() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                showResult('dashboardResult', '❌ Chưa có token. Vui lòng đăng nhập trước!', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/dashboard`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('dashboardResult', '✅ Dashboard API hoạt động!\n\n' + JSON.stringify(data, null, 2), true);
+                } else {
+                    showResult('dashboardResult', '❌ Dashboard API lỗi:\n\n' + JSON.stringify(data, null, 2), false);
+                }
+            } catch (error) {
+                showResult('dashboardResult', '❌ Lỗi: ' + error.message, false);
+            }
+        }
+
+        function showDebugInfo() {
+            const token = localStorage.getItem('access_token');
+            const info = {
+                'API Base URL': API_BASE,
+                'Window Origin': window.location.origin,
+                'Token exists': !!token,
+                'Token (first 50 chars)': token ? token.substring(0, 50) + '...' : 'N/A',
+                'LocalStorage keys': Object.keys(localStorage).join(', ')
+            };
+
+            const element = document.getElementById('debugInfo');
+            element.className = 'result info';
+            element.textContent = JSON.stringify(info, null, 2);
+        }
+
+        // Auto load token on page load
+        window.onload = function() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('currentToken').textContent = token.substring(0, 50) + '...';
+            }
+        };
+    </script>
+</body>
+</html>

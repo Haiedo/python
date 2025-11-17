@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân - Expense Splitter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-wallet"></i> Expense Splitter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/groups">
+                            <i class="fas fa-users"></i> Nhóm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/expenses">
+                            <i class="fas fa-receipt"></i> Chi tiêu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settlements">
+                            <i class="fas fa-money-bill-wave"></i> Thanh toán
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> <span id="username-display">Người dùng</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item active" href="/profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header -->
+                <div class="dashboard-header mb-4">
+                    <h1>Hồ sơ cá nhân</h1>
+                    <p class="text-muted">Quản lý thông tin tài khoản và cài đặt của bạn</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Profile Info Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        </div>
+                        <h4 id="profile-name">Đang tải...</h4>
+                        <p class="text-muted mb-2" id="profile-username">@username</p>
+                        <p class="text-muted" id="profile-email">email@example.com</p>
+
+                        <hr>
+
+                        <div class="text-start">
+                            <p class="mb-2">
+                                <i class="fas fa-phone text-muted"></i>
+                                <span id="profile-phone" class="ms-2">Chưa cập nhật</span>
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-shield-alt text-muted"></i>
+                                <span class="ms-2" id="profile-role">User</span>
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar text-muted"></i>
+                                <span class="ms-2" id="profile-joined">Tham gia: N/A</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#profile-tab">
+                                    <i class="fas fa-user"></i> Thông tin cá nhân
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#security-tab">
+                                    <i class="fas fa-lock"></i> Bảo mật
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Profile Tab -->
+                            <div class="tab-pane fade show active" id="profile-tab">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-user"></i> Cập nhật thông tin
+                                </h5>
+                                <form id="updateProfileForm">
+                                    <div class="mb-3">
+                                        <label for="fullName" class="form-label">
+                                            <i class="fas fa-id-card"></i> Họ và tên
+                                        </label>
+                                        <input type="text" class="form-control" id="fullName" placeholder="Nhập họ tên đầy đủ">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">
+                                            <i class="fas fa-envelope"></i> Email
+                                        </label>
+                                        <input type="email" class="form-control" id="email" placeholder="email@example.com" disabled>
+                                        <small class="text-muted">Email không thể thay đổi</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">
+                                            <i class="fas fa-phone"></i> Số điện thoại
+                                        </label>
+                                        <input type="tel" class="form-control" id="phone" placeholder="0123456789">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Lưu thay đổi
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Security Tab -->
+                            <div class="tab-pane fade" id="security-tab">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-lock"></i> Đổi mật khẩu
+                                </h5>
+                                <p class="text-muted mb-4">Đảm bảo tài khoản của bạn luôn an toàn bằng mật khẩu mạnh</p>
+
+                                <form id="changePasswordForm">
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">
+                                            <i class="fas fa-key"></i> Mật khẩu hiện tại
+                                        </label>
+                                        <input type="password" class="form-control" id="currentPassword" placeholder="Nhập mật khẩu hiện tại" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">
+                                            <i class="fas fa-lock"></i> Mật khẩu mới
+                                        </label>
+                                        <input type="password" class="form-control" id="newPassword" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">
+                                            <i class="fas fa-lock"></i> Xác nhận mật khẩu mới
+                                        </label>
+                                        <input type="password" class="form-control" id="confirmPassword" placeholder="Nhập lại mật khẩu mới" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Đổi mật khẩu
+                                    </button>
+                                </form>
+
+                                <hr class="my-4">
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Lưu ý:</strong> Sau khi đổi mật khẩu, bạn sẽ cần đăng nhập lại.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Check authentication
+        checkAuth();
+
+        let currentUser = null;
+
+        // Load profile data
+        async function loadProfile() {
+            try {
+                const response = await AuthAPI.getProfile();
+                currentUser = response.user;
+
+                // Update profile display
+                displayProfile(currentUser);
+
+                // Pre-fill form fields
+                document.getElementById('fullName').value = currentUser.full_name || '';
+                document.getElementById('email').value = currentUser.email || '';
+                document.getElementById('phone').value = currentUser.phone || '';
+            } catch (error) {
+                showError('Không thể tải thông tin hồ sơ: ' + error.message);
+            }
+        }
+
+        function displayProfile(user) {
+            document.getElementById('username-display').textContent = user.full_name || user.username;
+            document.getElementById('profile-name').textContent = user.full_name || user.username;
+            document.getElementById('profile-username').textContent = '@' + user.username;
+            document.getElementById('profile-email').textContent = user.email || 'Chưa cập nhật';
+            document.getElementById('profile-phone').textContent = user.phone || 'Chưa cập nhật';
+            document.getElementById('profile-role').textContent = user.is_superadmin ? 'Quản trị viên' : 'Người dùng';
+
+            if (user.created_at) {
+                document.getElementById('profile-joined').textContent = 'Tham gia: ' + formatDate(user.created_at);
+            }
+        }
+
+        // Update profile form
+        document.getElementById('updateProfileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!email) {
+                showError('Email không được để trống');
+                return;
+            }
+
+            try {
+                await AuthAPI.updateProfile({
+                    full_name: fullName || null,
+                    phone: phone || null
+                });
+
+                showSuccess('Cập nhật thông tin thành công!');
+                await loadProfile();
+            } catch (error) {
+                showError('Không thể cập nhật: ' + error.message);
+            }
+        });
+
+        // Change password form
+        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showError('Mật khẩu xác nhận không khớp!');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showError('Mật khẩu mới phải có ít nhất 6 ký tự!');
+                return;
+            }
+
+            try {
+                await AuthAPI.changePassword({
+                    old_password: currentPassword,
+                    new_password: newPassword
+                });
+
+                showSuccess('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+
+                // Reset form
+                document.getElementById('changePasswordForm').reset();
+
+                // Logout after 2 seconds
+                setTimeout(() => {
+                    AuthAPI.logout();
+                }, 2000);
+            } catch (error) {
+                showError('Không thể đổi mật khẩu: ' + error.message);
+            }
+        });
+
+        // Load profile on page load
+        loadProfile();
+    </script>
+</body>
+</html>

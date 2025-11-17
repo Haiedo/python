@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị hệ thống - Expense Splitter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-wallet"></i> Expense Splitter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/groups">
+                            <i class="fas fa-users"></i> Nhóm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/expenses">
+                            <i class="fas fa-receipt"></i> Chi tiêu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settlements">
+                            <i class="fas fa-money-bill-wave"></i> Thanh toán
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin">
+                            <i class="fas fa-cog"></i> Quản trị
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> <span id="username-display">Người dùng</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header -->
+                <div class="dashboard-header mb-4">
+                    <h1>
+                        <i class="fas fa-cog"></i> Quản trị hệ thống
+                    </h1>
+                    <p class="text-muted">Quản lý người dùng, danh mục và hệ thống</p>
+                </div>
+
+                <!-- Access Check -->
+                <div id="access-denied" style="display: none;" class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Truy cập bị từ chối!</strong> Bạn không có quyền truy cập trang này.
+                    <a href="/dashboard" class="alert-link">Quay lại trang chủ</a>
+                </div>
+
+                <div id="admin-content">
+                    <!-- System Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="stat-label">Tổng người dùng</p>
+                                            <h3 class="stat-value" id="total-users">0</h3>
+                                        </div>
+                                        <i class="fas fa-users fa-3x text-primary opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="stat-label">Tổng nhóm</p>
+                                            <h3 class="stat-value" id="total-groups">0</h3>
+                                        </div>
+                                        <i class="fas fa-users-cog fa-3x text-success opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="stat-label">Tổng chi tiêu</p>
+                                            <h3 class="stat-value" id="total-expenses">0</h3>
+                                        </div>
+                                        <i class="fas fa-receipt fa-3x text-warning opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="stat-label">Thanh toán</p>
+                                            <h3 class="stat-value" id="total-payments">0</h3>
+                                        </div>
+                                        <i class="fas fa-money-bill fa-3x text-info opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#users-tab">
+                                        <i class="fas fa-users"></i> Người dùng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#categories-tab">
+                                        <i class="fas fa-tags"></i> Danh mục
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#system-tab">
+                                        <i class="fas fa-chart-bar"></i> Thống kê
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <!-- Users Tab -->
+                                <div class="tab-pane fade show active" id="users-tab">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-users"></i> Quản lý người dùng
+                                        </h5>
+                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                                            <i class="fas fa-user-plus"></i> Thêm người dùng
+                                        </button>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Tên đăng nhập</th>
+                                                    <th>Họ tên</th>
+                                                    <th>Email</th>
+                                                    <th>Vai trò</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Hành động</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="users-table-body">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Đang tải...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Categories Tab -->
+                                <div class="tab-pane fade" id="categories-tab">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-tags"></i> Quản lý danh mục chi tiêu
+                                        </h5>
+                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                                            <i class="fas fa-plus"></i> Thêm danh mục
+                                        </button>
+                                    </div>
+
+                                    <div class="row" id="categories-container">
+                                        <div class="col-12 text-center">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Đang tải...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- System Stats Tab -->
+                                <div class="tab-pane fade" id="system-tab">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-chart-bar"></i> Thống kê hệ thống
+                                    </h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Người dùng mới (7 ngày qua)</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted text-center">Chức năng thống kê đang phát triển</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Chi tiêu theo thời gian</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted text-center">Chức năng thống kê đang phát triển</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Lưu ý:</strong> Các tính năng thống kê nâng cao đang được phát triển.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus"></i> Thêm người dùng mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Chức năng này yêu cầu API endpoint riêng cho admin tạo user.</p>
+                    <p class="text-muted">Hiện tại, người dùng có thể tự đăng ký qua trang <a href="/register">/register</a></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Category Modal -->
+    <div class="modal fade" id="createCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus"></i> Thêm danh mục
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createCategoryForm">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">
+                                <i class="fas fa-tag"></i> Tên danh mục
+                            </label>
+                            <input type="text" class="form-control" id="categoryName" placeholder="Ví dụ: Ăn uống, Du lịch..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryIcon" class="form-label">
+                                <i class="fas fa-icons"></i> Icon (Font Awesome class)
+                            </label>
+                            <input type="text" class="form-control" id="categoryIcon" placeholder="Ví dụ: fa-utensils, fa-plane..." required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="createCategory()">
+                        <i class="fas fa-check"></i> Tạo danh mục
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Check authentication and admin role
+        checkAuth();
+
+        let currentUser = null;
+        let allUsers = [];
+        let allCategories = [];
+
+        // Load admin data
+        async function loadAdminData() {
+            try {
+                // Load user profile
+                const profile = await AuthAPI.getProfile();
+                currentUser = profile.user;
+                document.getElementById('username-display').textContent = currentUser.full_name || currentUser.username;
+
+                // Check if user is admin
+                if (currentUser.role !== 'admin') {
+                    document.getElementById('admin-content').style.display = 'none';
+                    document.getElementById('access-denied').style.display = 'block';
+                    return;
+                }
+
+                // Load admin stats and data
+                await loadSystemStats();
+                await loadUsers();
+                await loadCategories();
+            } catch (error) {
+                showError('Không thể tải dữ liệu quản trị: ' + error.message);
+            }
+        }
+
+        async function loadSystemStats() {
+            try {
+                const response = await AdminAPI.getStats();
+                const stats = response.stats || {};
+
+                document.getElementById('total-users').textContent = stats.total_users || 0;
+                document.getElementById('total-groups').textContent = stats.total_groups || 0;
+                document.getElementById('total-expenses').textContent = stats.total_expenses || 0;
+                document.getElementById('total-payments').textContent = stats.total_payments || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await AdminAPI.getAllUsers();
+                allUsers = response.users || [];
+                displayUsers();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('users-table-body').innerHTML = '<tr><td colspan="7" class="text-center text-muted">Không thể tải danh sách người dùng</td></tr>';
+            }
+        }
+
+        function displayUsers() {
+            const tbody = document.getElementById('users-table-body');
+
+            if (allUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Chưa có người dùng nào</td></tr>';
+                return;
+            }
+
+            const html = allUsers.map(user => {
+                const isActive = user.is_active !== false;
+
+                return `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.full_name || '-'}</td>
+                        <td>${user.email || '-'}</td>
+                        <td>
+                            <span class="badge bg-${user.role === 'admin' ? 'danger' : 'primary'}">
+                                ${user.role === 'admin' ? 'Admin' : 'User'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-${isActive ? 'success' : 'secondary'}">
+                                ${isActive ? 'Hoạt động' : 'Ngưng'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="viewUser(${user.id})" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${user.id !== currentUser.id ? `
+                                    <button class="btn btn-outline-warning" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Đổi vai trò">
+                                        <i class="fas fa-user-shield"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await AdminAPI.getCategories();
+                allCategories = response.categories || [];
+                displayCategories();
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                document.getElementById('categories-container').innerHTML = '<div class="col-12 text-center text-muted">Không thể tải danh mục</div>';
+            }
+        }
+
+        function displayCategories() {
+            const container = document.getElementById('categories-container');
+
+            if (allCategories.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Chưa có danh mục nào</div>';
+                return;
+            }
+
+            const html = allCategories.map(cat => `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5>
+                                        <i class="fas ${cat.icon || 'fa-tag'}"></i>
+                                        ${cat.name}
+                                    </h5>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${cat.id}, '${cat.name}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // User actions
+        function viewUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (user) {
+                alert(`Thông tin người dùng:\n\nID: ${user.id}\nTên đăng nhập: ${user.username}\nHọ tên: ${user.full_name || 'N/A'}\nEmail: ${user.email || 'N/A'}\nVai trò: ${user.role}`);
+            }
+        }
+
+        async function toggleUserRole(userId, currentRole) {
+            const newRole = currentRole === 'admin' ? 'client' : 'admin';
+            const user = allUsers.find(u => u.id === userId);
+
+            if (!confirm(`Bạn có chắc muốn đổi vai trò của "${user.username}" thành ${newRole === 'admin' ? 'Admin' : 'User'}?`)) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                await AdminAPI.updateUserRole(userId, newRole);
+                showSuccess('Đã cập nhật vai trò người dùng');
+                await loadUsers();
+            } catch (error) {
+                showError('Không thể cập nhật vai trò: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Category actions
+        async function createCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            const icon = document.getElementById('categoryIcon').value.trim();
+
+            if (!name || !icon) {
+                showError('Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                await AdminAPI.createCategory({ name, icon });
+                showSuccess('Tạo danh mục thành công!');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createCategoryModal'));
+                modal.hide();
+
+                // Reset form
+                document.getElementById('createCategoryForm').reset();
+
+                // Reload categories
+                await loadCategories();
+            } catch (error) {
+                showError('Không thể tạo danh mục: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function deleteCategory(categoryId, categoryName) {
+            if (!confirm(`Bạn có chắc muốn xóa danh mục "${categoryName}"?`)) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                await AdminAPI.deleteCategory(categoryId);
+                showSuccess('Đã xóa danh mục');
+                await loadCategories();
+            } catch (error) {
+                showError('Không thể xóa danh mục: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load admin data on page load
+        loadAdminData();
+    </script>
+</body>
+</html>

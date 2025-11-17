@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết nhóm - Expense Splitter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-wallet"></i> Expense Splitter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/groups">
+                            <i class="fas fa-users"></i> Nhóm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/expenses">
+                            <i class="fas fa-receipt"></i> Chi tiêu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settlements">
+                            <i class="fas fa-money-bill-wave"></i> Thanh toán
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> <span id="username-display">Người dùng</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/groups">Nhóm</a></li>
+                <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-name">Chi tiết nhóm</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Group Info & Stats -->
+            <div class="col-md-8">
+                <!-- Group Header -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h2 id="group-name">
+                                    <i class="fas fa-users text-primary"></i>
+                                    <span class="ms-2">Đang tải...</span>
+                                </h2>
+                                <p class="text-muted mb-0" id="group-description"></p>
+                            </div>
+                            <div id="admin-actions" style="display: none;">
+                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editGroupModal">
+                                    <i class="fas fa-edit"></i> Chỉnh sửa
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Group Stats -->
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <i class="fas fa-user fa-2x text-primary mb-2"></i>
+                                    <h4 id="member-count">0</h4>
+                                    <p class="text-muted mb-0">Thành viên</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <i class="fas fa-receipt fa-2x text-success mb-2"></i>
+                                    <h4 id="expense-count">0</h4>
+                                    <p class="text-muted mb-0">Chi tiêu</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+                                    <h4 id="total-amount">0đ</h4>
+                                    <p class="text-muted mb-0">Tổng chi</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Expenses -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt"></i> Chi tiêu gần đây
+                        </h5>
+                        <a href="/expenses" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Thêm chi tiêu
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-expenses">
+                            <p class="text-center text-muted">Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balances -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-balance-scale"></i> Số dư hiện tại
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="balances-container">
+                            <p class="text-center text-muted">Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Sidebar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users"></i> Thành viên
+                        </h5>
+                        <button class="btn btn-sm btn-primary" id="add-member-btn" data-bs-toggle="modal" data-bs-target="#addMemberModal" style="display: none;">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" id="members-list">
+                            <div class="list-group-item text-center text-muted">
+                                Đang tải...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal -->
+    <div class="modal fade" id="editGroupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit"></i> Chỉnh sửa nhóm
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editGroupForm">
+                        <div class="mb-3">
+                            <label for="editGroupName" class="form-label">
+                                <i class="fas fa-tag"></i> Tên nhóm
+                            </label>
+                            <input type="text" class="form-control" id="editGroupName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editGroupDescription" class="form-label">
+                                <i class="fas fa-align-left"></i> Mô tả
+                            </label>
+                            <textarea class="form-control" id="editGroupDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="updateGroup()">
+                        <i class="fas fa-check"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus"></i> Thêm thành viên
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMemberForm">
+                        <div class="mb-3">
+                            <label for="memberSearch" class="form-label">
+                                <i class="fas fa-search"></i> Tìm kiếm người dùng
+                            </label>
+                            <input type="text" class="form-control" id="memberSearch" placeholder="Nhập username hoặc email" autocomplete="off">
+                            <small class="text-muted">Nhập ít nhất 2 ký tự để tìm kiếm</small>
+                            <div id="search-results" class="list-group mt-2" style="display: none; max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-user-check"></i> Người dùng được chọn
+                            </label>
+                            <div id="selected-user" class="alert alert-info" style="display: none;">
+                                <strong id="selected-user-name"></strong>
+                                <br>
+                                <small id="selected-user-email"></small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="memberRole" class="form-label">
+                                <i class="fas fa-shield-alt"></i> Vai trò
+                            </label>
+                            <select class="form-select" id="memberRole">
+                                <option value="member">Thành viên</option>
+                                <option value="admin">Quản trị viên</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="addMember()">
+                        <i class="fas fa-check"></i> Thêm thành viên
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Check authentication
+        checkAuth();
+
+        // Get group ID from URL
+        const groupId = parseInt(window.location.pathname.split('/').pop());
+        let currentGroup = null;
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Load group details
+        async function loadGroupDetails() {
+            try {
+                // Load user profile
+                const profile = await AuthAPI.getProfile();
+                currentUser = profile.user;
+                document.getElementById('username-display').textContent = currentUser.full_name || currentUser.username;
+
+                // Load group
+                const response = await GroupsAPI.getById(groupId);
+                currentGroup = response.group;
+
+                // Check if user is admin
+                isAdmin = currentGroup.members?.some(m => m.user_id === currentUser.id && m.role === 'admin');
+
+                // Display group info
+                displayGroupInfo();
+
+                // Load group expenses
+                await loadGroupExpenses();
+
+                // Load balances
+                await loadBalances();
+
+            } catch (error) {
+                showError('Không thể tải thông tin nhóm: ' + error.message);
+            }
+        }
+
+        function displayGroupInfo() {
+            // Update header
+            document.getElementById('group-name').innerHTML = `
+                <i class="fas fa-users text-primary"></i>
+                <span class="ms-2">${currentGroup.name}</span>
+            `;
+            document.getElementById('breadcrumb-name').textContent = currentGroup.name;
+            document.getElementById('group-description').textContent = currentGroup.description || '';
+
+            // Show admin actions if user is admin
+            if (isAdmin) {
+                document.getElementById('admin-actions').style.display = 'block';
+                document.getElementById('add-member-btn').style.display = 'inline-block';
+            }
+
+            // Update stats
+            const memberCount = currentGroup.members?.length || 0;
+            document.getElementById('member-count').textContent = memberCount;
+
+            // Display members
+            displayMembers();
+        }
+
+        function displayMembers() {
+            const membersList = document.getElementById('members-list');
+            const members = currentGroup.members || [];
+
+            if (members.length === 0) {
+                membersList.innerHTML = '<div class="list-group-item text-center text-muted">Chưa có thành viên</div>';
+                return;
+            }
+
+            const html = members.map(member => {
+                const user = member.user || {};
+                const isCurrentUser = user.id === currentUser.id;
+                const isMemberAdmin = member.role === 'admin';
+
+                return `
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-circle fa-2x text-muted me-2"></i>
+                                    <div>
+                                        <strong>${user.full_name || user.username}</strong>
+                                        ${isCurrentUser ? '<span class="badge bg-info ms-1">Bạn</span>' : ''}
+                                        ${isMemberAdmin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
+                                        <br>
+                                        <small class="text-muted">${user.email || ''}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            ${isAdmin && !isCurrentUser ? `
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="changeMemberRole(${user.id}, '${isMemberAdmin ? 'member' : 'admin'}')">
+                                                <i class="fas fa-user-shield"></i>
+                                                ${isMemberAdmin ? 'Hạ xuống thành viên' : 'Thăng lên admin'}
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="removeMember(${user.id}, '${user.full_name || user.username}')">
+                                                <i class="fas fa-user-minus"></i> Xóa khỏi nhóm
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            membersList.innerHTML = html;
+        }
+
+        async function loadGroupExpenses() {
+            try {
+                const response = await ExpensesAPI.getAll(groupId);
+                const expenses = response.expenses || [];
+
+                // Update stats
+                document.getElementById('expense-count').textContent = expenses.length;
+
+                const total = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+                document.getElementById('total-amount').textContent = formatCurrency(total);
+
+                // Display recent expenses
+                displayRecentExpenses(expenses.slice(0, 10));
+            } catch (error) {
+                console.error('Error loading expenses:', error);
+                document.getElementById('recent-expenses').innerHTML = '<p class="text-center text-muted">Không thể tải chi tiêu</p>';
+            }
+        }
+
+        function displayRecentExpenses(expenses) {
+            const container = document.getElementById('recent-expenses');
+
+            if (expenses.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Chưa có chi tiêu nào</p>';
+                return;
+            }
+
+            const html = expenses.map(expense => `
+                <div class="expense-item mb-3">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>${expense.description}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> ${expense.paid_by?.full_name || expense.paid_by?.username || 'Unknown'}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-calendar"></i> ${formatDate(expense.created_at)}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <strong class="text-primary">${formatCurrency(expense.amount)}</strong>
+                            <br>
+                            <span class="badge bg-${expense.status === 'approved' ? 'success' : 'warning'}">
+                                ${expense.status === 'approved' ? 'Đã duyệt' : 'Chờ duyệt'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        async function loadBalances() {
+            try {
+                const response = await PaymentsAPI.getBalances(groupId);
+                const balances = response.balances || {};
+
+                displayBalances(balances);
+            } catch (error) {
+                console.error('Error loading balances:', error);
+                document.getElementById('balances-container').innerHTML = '<p class="text-center text-muted">Không thể tải số dư</p>';
+            }
+        }
+
+        function displayBalances(balances) {
+            const container = document.getElementById('balances-container');
+
+            if (Object.keys(balances).length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Chưa có dữ liệu số dư</p>';
+                return;
+            }
+
+            const html = Object.entries(balances).map(([userId, data]) => {
+                const balance = data.balance || 0;
+                const user = data.user || {};
+                const isPositive = balance > 0;
+                const isZero = Math.abs(balance) < 0.01;
+
+                return `
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <strong>${user.full_name || user.username || 'Unknown'}</strong>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-0 ${isZero ? 'text-muted' : isPositive ? 'text-success' : 'text-danger'}">
+                                ${isPositive ? '+' : ''}${formatCurrency(balance)}
+                            </h5>
+                            <small class="text-muted">
+                                ${isZero ? 'Đã thanh toán' : isPositive ? 'Được nhận' : 'Cần trả'}
+                            </small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Update group
+        async function updateGroup() {
+            const name = document.getElementById('editGroupName').value.trim();
+            const description = document.getElementById('editGroupDescription').value.trim();
+
+            if (!name) {
+                showError('Vui lòng nhập tên nhóm');
+                return;
+            }
+
+            try {
+                await GroupsAPI.update(groupId, {
+                    name: name,
+                    description: description || null
+                });
+
+                showSuccess('Cập nhật nhóm thành công!');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editGroupModal'));
+                modal.hide();
+
+                // Reload group
+                await loadGroupDetails();
+            } catch (error) {
+                showError('Không thể cập nhật nhóm: ' + error.message);
+            }
+        }
+
+        // User search functionality
+        let selectedUserId = null;
+        let searchTimeout = null;
+
+        document.getElementById('memberSearch').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                document.getElementById('search-results').style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await GroupsAPI.searchUsers(query);
+                    displaySearchResults(response.users || []);
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            }, 300);
+        });
+
+        function displaySearchResults(users) {
+            const resultsContainer = document.getElementById('search-results');
+
+            if (users.length === 0) {
+                resultsContainer.innerHTML = '<div class="list-group-item text-muted">Không tìm thấy người dùng</div>';
+                resultsContainer.style.display = 'block';
+                return;
+            }
+
+            // Filter out existing members
+            const existingMemberIds = currentGroup.members?.map(m => m.user_id) || [];
+            const availableUsers = users.filter(u => !existingMemberIds.includes(u.id));
+
+            if (availableUsers.length === 0) {
+                resultsContainer.innerHTML = '<div class="list-group-item text-muted">Tất cả người dùng đã là thành viên</div>';
+                resultsContainer.style.display = 'block';
+                return;
+            }
+
+            const html = availableUsers.map(user => `
+                <a href="#" class="list-group-item list-group-item-action" onclick="selectUser(${user.id}, '${user.full_name || user.username}', '${user.email}'); return false;">
+                    <strong>${user.full_name || user.username}</strong>
+                    <br>
+                    <small class="text-muted">${user.email}</small>
+                </a>
+            `).join('');
+
+            resultsContainer.innerHTML = html;
+            resultsContainer.style.display = 'block';
+        }
+
+        function selectUser(userId, name, email) {
+            selectedUserId = userId;
+            document.getElementById('selected-user-name').textContent = name;
+            document.getElementById('selected-user-email').textContent = email;
+            document.getElementById('selected-user').style.display = 'block';
+            document.getElementById('search-results').style.display = 'none';
+            document.getElementById('memberSearch').value = '';
+        }
+
+        // Add member
+        async function addMember() {
+            if (!selectedUserId) {
+                showError('Vui lòng chọn người dùng từ kết quả tìm kiếm');
+                return;
+            }
+
+            const role = document.getElementById('memberRole').value;
+
+            try {
+                await GroupsAPI.addMember(groupId, selectedUserId, role);
+                showSuccess('Đã thêm thành viên vào nhóm!');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
+                modal.hide();
+
+                // Reset form
+                selectedUserId = null;
+                document.getElementById('selected-user').style.display = 'none';
+                document.getElementById('memberSearch').value = '';
+                document.getElementById('memberRole').value = 'member';
+
+                // Reload group
+                await loadGroupDetails();
+            } catch (error) {
+                showError('Không thể thêm thành viên: ' + error.message);
+            }
+        }
+
+        // Change member role
+        async function changeMemberRole(userId, newRole) {
+            try {
+                await GroupsAPI.updateMemberRole(groupId, userId, newRole);
+                showSuccess('Đã cập nhật vai trò thành viên');
+                await loadGroupDetails();
+            } catch (error) {
+                showError('Không thể cập nhật vai trò: ' + error.message);
+            }
+        }
+
+        // Remove member
+        async function removeMember(userId, userName) {
+            if (!confirm(`Bạn có chắc muốn xóa "${userName}" khỏi nhóm?`)) {
+                return;
+            }
+
+            try {
+                await GroupsAPI.removeMember(groupId, userId);
+                showSuccess('Đã xóa thành viên khỏi nhóm');
+                await loadGroupDetails();
+            } catch (error) {
+                showError('Không thể xóa thành viên: ' + error.message);
+            }
+        }
+
+        // Load group on page load
+        loadGroupDetails();
+
+        // Pre-fill edit form when modal opens
+        document.getElementById('editGroupModal').addEventListener('show.bs.modal', function() {
+            if (currentGroup) {
+                document.getElementById('editGroupName').value = currentGroup.name;
+                document.getElementById('editGroupDescription').value = currentGroup.description || '';
+            }
+        });
+    </script>
+</body>
+</html>

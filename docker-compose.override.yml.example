@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web:
+    environment:
+      - FLASK_DEBUG=1
+    volumes:
+      - .:/app:cached
+    ports:
+      - "5000:5000"

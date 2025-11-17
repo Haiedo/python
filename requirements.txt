@@ -1,0 +1,38 @@
+# Flask Core
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-CORS==4.0.0
+
+# Authentication & Security
+Flask-JWT-Extended==4.6.0
+Flask-Bcrypt
+python-dotenv==1.0.0
+
+# Email
+Flask-Mail==0.9.1
+
+# Database
+SQLAlchemy
+psycopg2-binary
+
+# Payment Integration
+requests==2.31.0
+
+# Utilities
+python-dateutil==2.8.2
+Pillow
+
+# Export & Reports
+pandas
+openpyxl==3.1.2
+reportlab
+
+# Testing
+pytest
+pytest-cov
+pytest-flask
+Flask-Testing==0.8.1
+
+# Development
+python-decouple==3.8

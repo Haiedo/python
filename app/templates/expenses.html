@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý chi tiêu - Expense Splitter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-wallet"></i> Expense Splitter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/groups">
+                            <i class="fas fa-users"></i> Nhóm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/expenses">
+                            <i class="fas fa-receipt"></i> Chi tiêu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settlements">
+                            <i class="fas fa-money-bill-wave"></i> Thanh toán
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> <span id="username-display">Người dùng</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header -->
+                <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1>Quản lý chi tiêu</h1>
+                        <p class="text-muted">Theo dõi và quản lý tất cả chi tiêu của bạn</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
+                        <i class="fas fa-plus"></i> Thêm chi tiêu
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    <i class="fas fa-users"></i> Nhóm
+                                </label>
+                                <select class="form-select" id="filterGroup">
+                                    <option value="">Tất cả nhóm</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    <i class="fas fa-check-circle"></i> Trạng thái
+                                </label>
+                                <select class="form-select" id="filterStatus">
+                                    <option value="">Tất cả</option>
+                                    <option value="pending">Chờ duyệt</option>
+                                    <option value="approved">Đã duyệt</option>
+                                    <option value="rejected">Từ chối</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar"></i> Từ ngày
+                                </label>
+                                <input type="date" class="form-control" id="filterFromDate">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar"></i> Đến ngày
+                                </label>
+                                <input type="date" class="form-control" id="filterToDate">
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm mô tả chi tiêu...">
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                                    <i class="fas fa-redo"></i> Đặt lại
+                                </button>
+                                <button class="btn btn-primary" onclick="applyFilters()">
+                                    <i class="fas fa-filter"></i> Áp dụng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <p class="stat-label">Tổng chi tiêu</p>
+                                <h3 class="stat-value" id="total-expenses">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card success">
+                            <div class="card-body">
+                                <p class="stat-label">Đã duyệt</p>
+                                <h3 class="stat-value text-success" id="approved-count">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card warning">
+                            <div class="card-body">
+                                <p class="stat-label">Chờ duyệt</p>
+                                <h3 class="stat-value text-warning" id="pending-count">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <p class="stat-label">Tổng số tiền</p>
+                                <h3 class="stat-value text-primary" id="total-amount">0đ</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i> Danh sách chi tiêu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="expenses-container">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Expense Modal -->
+    <div class="modal fade" id="createExpenseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-receipt"></i> Thêm chi tiêu mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createExpenseForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expenseGroup" class="form-label">
+                                    <i class="fas fa-users"></i> Nhóm *
+                                </label>
+                                <select class="form-select" id="expenseGroup" required>
+                                    <option value="">Chọn nhóm</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expenseAmount" class="form-label">
+                                    <i class="fas fa-money-bill"></i> Số tiền *
+                                </label>
+                                <input type="number" class="form-control" id="expenseAmount" placeholder="0" min="0" step="1000" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="expenseDescription" class="form-label">
+                                <i class="fas fa-align-left"></i> Mô tả *
+                            </label>
+                            <input type="text" class="form-control" id="expenseDescription" placeholder="Ví dụ: Ăn trưa, Xem phim..." required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expenseCategory" class="form-label">
+                                    <i class="fas fa-tags"></i> Danh mục
+                                </label>
+                                <select class="form-select" id="expenseCategory">
+                                    <option value="1">Ăn uống</option>
+                                    <option value="2">Giải trí</option>
+                                    <option value="3">Du lịch</option>
+                                    <option value="4">Mua sắm</option>
+                                    <option value="5">Khác</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expenseDate" class="form-label">
+                                    <i class="fas fa-calendar"></i> Ngày chi tiêu
+                                </label>
+                                <input type="date" class="form-control" id="expenseDate">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-cut"></i> Cách chia *
+                            </label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="splitType" id="splitEqual" value="equal" checked>
+                                <label class="btn btn-outline-primary" for="splitEqual">
+                                    <i class="fas fa-equals"></i> Chia đều
+                                </label>
+
+                                <input type="radio" class="btn-check" name="splitType" id="splitUnequal" value="unequal">
+                                <label class="btn btn-outline-primary" for="splitUnequal">
+                                    <i class="fas fa-percent"></i> Theo %
+                                </label>
+
+                                <input type="radio" class="btn-check" name="splitType" id="splitCustom" value="custom">
+                                <label class="btn btn-outline-primary" for="splitCustom">
+                                    <i class="fas fa-sliders-h"></i> Tùy chỉnh
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Chọn cách chia tiền cho các thành viên trong nhóm
+                            </small>
+                        </div>
+
+                        <div id="splitDetails" class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Chia đều:</strong> Số tiền sẽ được chia đều cho tất cả thành viên trong nhóm
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="createExpense()">
+                        <i class="fas fa-check"></i> Tạo chi tiêu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Check authentication
+        checkAuth();
+
+        let allExpenses = [];
+        let allGroups = [];
+        let currentUser = null;
+
+        // Load page data
+        async function loadPageData() {
+            try {
+                // Load user profile
+                const profile = await AuthAPI.getProfile();
+                currentUser = profile.user;
+                document.getElementById('username-display').textContent = currentUser.full_name || currentUser.username;
+
+                // Load groups for filters
+                const groupsResponse = await GroupsAPI.getAll();
+                allGroups = groupsResponse.groups || [];
+                populateGroupFilters();
+
+                // Load expenses
+                await loadExpenses();
+            } catch (error) {
+                showError('Không thể tải dữ liệu: ' + error.message);
+            }
+        }
+
+        function populateGroupFilters() {
+            const filterSelect = document.getElementById('filterGroup');
+            const expenseGroupSelect = document.getElementById('expenseGroup');
+
+            const options = allGroups.map(group =>
+                `<option value="${group.id}">${group.name}</option>`
+            ).join('');
+
+            filterSelect.innerHTML = '<option value="">Tất cả nhóm</option>' + options;
+            expenseGroupSelect.innerHTML = '<option value="">Chọn nhóm</option>' + options;
+        }
+
+        async function loadExpenses() {
+            try {
+                const response = await ExpensesAPI.getAll();
+                allExpenses = response.expenses || [];
+                displayExpenses(allExpenses);
+                updateStats(allExpenses);
+            } catch (error) {
+                showError('Không thể tải chi tiêu: ' + error.message);
+                document.getElementById('expenses-container').innerHTML = '<p class="text-center text-muted">Không thể tải danh sách chi tiêu</p>';
+            }
+        }
+
+        function displayExpenses(expenses) {
+            const container = document.getElementById('expenses-container');
+
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-receipt fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Chưa có chi tiêu nào</h4>
+                        <p class="text-muted">Thêm chi tiêu đầu tiên để bắt đầu theo dõi!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = expenses.map(expense => {
+                const group = allGroups.find(g => g.id === expense.group_id);
+                const isMyExpense = expense.paid_by_id === currentUser.id;
+                const canApprove = group && group.members?.some(m => m.user_id === currentUser.id && m.role === 'admin');
+
+                return `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="mb-2">
+                                        <i class="fas fa-receipt text-primary"></i>
+                                        ${expense.description}
+                                    </h5>
+                                    <div class="mb-2">
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-users"></i> ${group?.name || 'Unknown Group'}
+                                        </span>
+                                        <span class="badge bg-${expense.status === 'approved' ? 'success' : expense.status === 'rejected' ? 'danger' : 'warning'}">
+                                            ${expense.status === 'approved' ? 'Đã duyệt' : expense.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt'}
+                                        </span>
+                                        ${isMyExpense ? '<span class="badge bg-info">Chi tiêu của bạn</span>' : ''}
+                                    </div>
+                                    <div class="text-muted">
+                                        <small>
+                                            <i class="fas fa-user"></i> ${expense.paid_by?.full_name || expense.paid_by?.username || 'Unknown'}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-calendar"></i> ${formatDate(expense.expense_date || expense.created_at)}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-cut"></i> ${expense.split_type === 'equal' ? 'Chia đều' : expense.split_type === 'unequal' ? 'Theo %' : 'Tùy chỉnh'}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h3 class="text-primary mb-3">${formatCurrency(expense.amount)}</h3>
+                                    <div class="btn-group btn-group-sm">
+                                        ${canApprove && expense.status === 'pending' ? `
+                                            <button class="btn btn-success" onclick="approveExpense(${expense.id})">
+                                                <i class="fas fa-check"></i> Duyệt
+                                            </button>
+                                            <button class="btn btn-danger" onclick="rejectExpense(${expense.id})">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        ` : ''}
+                                        ${isMyExpense ? `
+                                            <button class="btn btn-outline-danger" onclick="deleteExpense(${expense.id})">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function updateStats(expenses) {
+            document.getElementById('total-expenses').textContent = expenses.length;
+
+            const approved = expenses.filter(e => e.status === 'approved');
+            const pending = expenses.filter(e => e.status === 'pending');
+
+            document.getElementById('approved-count').textContent = approved.length;
+            document.getElementById('pending-count').textContent = pending.length;
+
+            const total = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            document.getElementById('total-amount').textContent = formatCurrency(total);
+        }
+
+        // Create expense
+        async function createExpense() {
+            const groupId = parseInt(document.getElementById('expenseGroup').value);
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const description = document.getElementById('expenseDescription').value.trim();
+            const categoryId = parseInt(document.getElementById('expenseCategory').value);
+            const expenseDate = document.getElementById('expenseDate').value;
+            const splitType = document.querySelector('input[name="splitType"]:checked').value;
+
+            if (!groupId) {
+                showError('Vui lòng chọn nhóm');
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showError('Vui lòng nhập số tiền hợp lệ');
+                return;
+            }
+            if (!description) {
+                showError('Vui lòng nhập mô tả');
+                return;
+            }
+
+            try {
+                const data = {
+                    group_id: groupId,
+                    amount: amount,
+                    description: description,
+                    category_id: categoryId,
+                    expense_date: expenseDate || new Date().toISOString().split('T')[0],
+                    split_type: splitType,
+                    paid_by_id: currentUser.id
+                };
+
+                await ExpensesAPI.create(data);
+                showSuccess('Thêm chi tiêu thành công!');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createExpenseModal'));
+                modal.hide();
+
+                // Reset form
+                document.getElementById('createExpenseForm').reset();
+
+                // Reload expenses
+                await loadExpenses();
+            } catch (error) {
+                showError('Không thể tạo chi tiêu: ' + error.message);
+            }
+        }
+
+        // Approve expense
+        async function approveExpense(expenseId) {
+            try {
+                await ExpensesAPI.approve(expenseId);
+                showSuccess('Đã duyệt chi tiêu');
+                await loadExpenses();
+            } catch (error) {
+                showError('Không thể duyệt chi tiêu: ' + error.message);
+            }
+        }
+
+        // Reject expense
+        async function rejectExpense(expenseId) {
+            if (!confirm('Bạn có chắc muốn từ chối chi tiêu này?')) {
+                return;
+            }
+
+            try {
+                await ExpensesAPI.reject(expenseId);
+                showSuccess('Đã từ chối chi tiêu');
+                await loadExpenses();
+            } catch (error) {
+                showError('Không thể từ chối chi tiêu: ' + error.message);
+            }
+        }
+
+        // Delete expense
+        async function deleteExpense(expenseId) {
+            if (!confirm('Bạn có chắc muốn xóa chi tiêu này?')) {
+                return;
+            }
+
+            try {
+                await ExpensesAPI.delete(expenseId);
+                showSuccess('Đã xóa chi tiêu');
+                await loadExpenses();
+            } catch (error) {
+                showError('Không thể xóa chi tiêu: ' + error.message);
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const groupId = document.getElementById('filterGroup').value;
+            const status = document.getElementById('filterStatus').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allExpenses.filter(expense => {
+                if (groupId && expense.group_id !== parseInt(groupId)) return false;
+                if (status && expense.status !== status) return false;
+                if (searchTerm && !expense.description.toLowerCase().includes(searchTerm)) return false;
+
+                const expDate = new Date(expense.expense_date || expense.created_at);
+                if (fromDate && expDate < new Date(fromDate)) return false;
+                if (toDate && expDate > new Date(toDate)) return false;
+
+                return true;
+            });
+
+            displayExpenses(filtered);
+            updateStats(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('filterGroup').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            document.getElementById('searchInput').value = '';
+            displayExpenses(allExpenses);
+            updateStats(allExpenses);
+        }
+
+        // Update split details when split type changes
+        document.querySelectorAll('input[name="splitType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const detailsDiv = document.getElementById('splitDetails');
+                let message = '';
+
+                switch(this.value) {
+                    case 'equal':
+                        message = '<i class="fas fa-info-circle"></i> <strong>Chia đều:</strong> Số tiền sẽ được chia đều cho tất cả thành viên trong nhóm';
+                        break;
+                    case 'unequal':
+                        message = '<i class="fas fa-info-circle"></i> <strong>Theo phần trăm:</strong> Mỗi thành viên sẽ trả theo tỷ lệ % được chỉ định';
+                        break;
+                    case 'custom':
+                        message = '<i class="fas fa-info-circle"></i> <strong>Tùy chỉnh:</strong> Bạn có thể chỉ định số tiền cụ thể cho từng thành viên';
+                        break;
+                }
+
+                detailsDiv.innerHTML = message;
+            });
+        });
+
+        // Set default date to today
+        document.getElementById('expenseDate').valueAsDate = new Date();
+
+        // Load page data
+        loadPageData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Splitter - Chia sẻ chi tiêu dễ dàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+            padding: 80px 0;
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: rgba(147, 197, 253, 0.2);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .hero-title .highlight {
+            color: #2563eb;
+            position: relative;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: #64748b;
+            margin-bottom: 2rem;
+        }
+
+        .hero-illustration {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .illustration-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+            transition: all 0.3s;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .illustration-card:nth-child(1) { animation-delay: 0s; }
+        .illustration-card:nth-child(2) { animation-delay: 0.2s; }
+        .illustration-card:nth-child(3) { animation-delay: 0.4s; }
+        .illustration-card:nth-child(4) { animation-delay: 0.6s; }
+
+        .illustration-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.25);
+        }
+
+        .illustration-card i {
+            font-size: 3rem;
+            color: #2563eb;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .illustration-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stats-badge {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.5rem;
+        }
+
+        .stats-badge i {
+            font-size: 1.5rem;
+            color: #2563eb;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-outline-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #2563eb;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stats-section {
+            padding: 60px 0;
+            background: white;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .section-title {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .text-primary-custom {
+            color: #2563eb !important;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            .stats-badge {
+                font-size: 0.85rem;
+                padding: 0.75rem 1rem;
+            }
+            .hero-illustration {
+                max-width: 400px;
+                margin-top: 2rem;
+            }
+            .illustration-card {
+                padding: 1.5rem 1rem;
+            }
+            .illustration-card i {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #2563eb;">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fas fa-wallet"></i> Expense Splitter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#features">Tính năng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#how-it-works">Cách sử dụng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-light text-primary px-4 ms-2" href="/login">Đăng nhập</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <h1 class="hero-title">
+                        Quản lý chi tiêu nhóm <span class="highlight">hiệu quả</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Chia tiền, theo dõi công nợ và thanh toán thông minh cho nhóm bạn bè, gia đình và đồng nghiệp.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <a href="/register" class="btn btn-primary btn-lg px-4 py-3">
+                            <i class="fas fa-rocket me-2"></i>Bắt đầu ngay
+                        </a>
+                        <a href="#how-it-works" class="btn btn-outline-primary btn-lg px-4 py-3">
+                            <i class="fas fa-play-circle me-2"></i>Xem demo
+                        </a>
+                    </div>
+                    <div class="d-flex flex-wrap">
+                        <div class="stats-badge">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <div class="fw-bold">100+</div>
+                                <small class="text-muted">Người dùng</small>
+                            </div>
+                        </div>
+                        <div class="stats-badge">
+                            <i class="fas fa-receipt"></i>
+                            <div>
+                                <div class="fw-bold">1000+</div>
+                                <small class="text-muted">Chi tiêu</small>
+                            </div>
+                        </div>
+                        <div class="stats-badge">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <div class="fw-bold">4.8/5</div>
+                                <small class="text-muted">Đánh giá</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <i class="fas fa-wallet"></i>
+                            <div class="illustration-label">Chia tiền</div>
+                        </div>
+                        <div class="illustration-card">
+                            <i class="fas fa-users"></i>
+                            <div class="illustration-label">Quản lý nhóm</div>
+                        </div>
+                        <div class="illustration-card">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="illustration-label">Thống kê</div>
+                        </div>
+                        <div class="illustration-card">
+                            <i class="fas fa-credit-card"></i>
+                            <div class="illustration-label">Thanh toán</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 mb-4">
+                    <div class="stat-number mb-2">100+</div>
+                    <h5 class="fw-bold mb-2">Người dùng</h5>
+                    <p class="text-secondary mb-0">Đang sử dụng mỗi ngày</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="stat-number mb-2">1000+</div>
+                    <h5 class="fw-bold mb-2">Chi tiêu</h5>
+                    <p class="text-secondary mb-0">Đã được quản lý</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="stat-number mb-2">500+</div>
+                    <h5 class="fw-bold mb-2">Thanh toán</h5>
+                    <p class="text-secondary mb-0">Đã được tối ưu hóa</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title display-5 mb-3">Tính năng nổi bật</h2>
+                <p class="text-muted">Mọi thứ bạn cần để quản lý chi tiêu nhóm</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-users feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">Quản lý nhóm</h5>
+                            <p class="text-muted mb-0">
+                                Tạo nhóm, thêm thành viên và quản lý vai trò dễ dàng.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-receipt feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">Ghi nhận chi tiêu</h5>
+                            <p class="text-muted mb-0">
+                                Chia tiền đều, theo phần trăm hoặc tùy chỉnh.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-calculator feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">Tính toán thông minh</h5>
+                            <p class="text-muted mb-0">
+                                Tối ưu hóa số lần thanh toán cần thiết.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-chart-line feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">Thống kê trực quan</h5>
+                            <p class="text-muted mb-0">
+                                Biểu đồ và báo cáo chi tiết theo danh mục.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-credit-card feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">Thanh toán dễ dàng</h5>
+                            <p class="text-muted mb-0">
+                                Hỗ trợ nhiều phương thức thanh toán.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-shield-alt feature-icon"></i>
+                            <h5 class="fw-semibold mb-2">An toàn & Bảo mật</h5>
+                            <p class="text-muted mb-0">
+                                Mã hóa dữ liệu và phân quyền chặt chẽ.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title mb-3">Cách sử dụng</h2>
+                <p class="text-muted">Chỉ 4 bước đơn giản</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-3 text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 600;">
+                        1
+                    </div>
+                    <h6 class="fw-semibold mb-2">Đăng ký tài khoản</h6>
+                    <p class="text-muted small mb-0">Tạo tài khoản miễn phí</p>
+                </div>
+
+                <div class="col-md-3 text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 600;">
+                        2
+                    </div>
+                    <h6 class="fw-semibold mb-2">Tạo nhóm</h6>
+                    <p class="text-muted small mb-0">Thêm thành viên</p>
+                </div>
+
+                <div class="col-md-3 text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 600;">
+                        3
+                    </div>
+                    <h6 class="fw-semibold mb-2">Ghi nhận chi tiêu</h6>
+                    <p class="text-muted small mb-0">Chọn cách chia tiền</p>
+                </div>
+
+                <div class="col-md-3 text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 600;">
+                        4
+                    </div>
+                    <h6 class="fw-semibold mb-2">Thanh toán</h6>
+                    <p class="text-muted small mb-0">Xem và thanh toán</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="container text-center">
+            <h2 class="section-title mb-3">Sẵn sàng bắt đầu?</h2>
+            <p class="text-muted mb-4">Tham gia ngay để quản lý chi tiêu thông minh hơn</p>
+            <a href="/register" class="btn btn-primary btn-lg px-5 py-3">
+                Đăng ký miễn phí
+            </a>
+            <div class="mt-3">
+                <small class="text-muted">Đã có tài khoản? <a href="/login" class="text-primary-custom text-decoration-none">Đăng nhập</a></small>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 bg-dark text-white">
+        <div class="container text-center">
+            <p class="mb-2">
+                <i class="fas fa-wallet"></i> <strong>Expense Splitter</strong>
+            </p>
+            <p class="text-white-50 mb-2">Chia sẻ chi tiêu dễ dàng, quản lý tài chính thông minh</p>
+            <p class="text-white-50 mb-0">
+                <small>&copy; 2025 Expense Splitter. Tất cả các quyền được bảo lưu.</small>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Redirect to dashboard if already logged in
+        if (AuthToken.isAuthenticated()) {
+            window.location.href = '/dashboard';
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
