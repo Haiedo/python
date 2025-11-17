@@ -1,18 +1,13 @@
-from flask import Flask
+import os
+from app import create_app
 
-app = Flask(__name__)  # PHẢI TÊN "app"
+# Lấy config từ environment (Vercel tự set)
+config_name = os.getenv('FLASK_ENV', 'development')
+app = create_app(config_name)
 
-@app.route("/")
-def home():
-    return {"message": "Hello from Flask on Vercel! 🚀"}
+# === XÓA HOÀN TOÀN DÒNG NÀY ===
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=5000, debug=True)
 
-# Thêm các route khác của bạn ở đây
-# Ví dụ:
-# @app.route("/api")
-# def api():
-#     return {"status": "ok"}
-
-# === QUAN TRỌNG: KHÔNG DÙNG app.run() ===
-# XÓA DÒNG NÀY NẾU CÓ:
-# if __name__ == "__main__":
-#     app.run(debug=True)
+# === THÊM DÒNG NÀY ĐỂ VERCEL NHẬN DIỆN ===
+# Vercel cần biến `app` là WSGI object → đã có rồi!
