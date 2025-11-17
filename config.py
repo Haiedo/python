@@ -9,7 +9,8 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
     # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///expense_splitter.db')
+    # Thay sqlite bằng PostgreSQL (miễn phí)
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://user:pass@localhost/dbname')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT

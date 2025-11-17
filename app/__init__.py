@@ -132,7 +132,6 @@ def create_app(config_name='default'):
         return send_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_jwt.html'))
 
     # Create database tables
-    with app.app_context():
-        db.create_all()
+
 
     return app
