@@ -10,7 +10,8 @@ class Config:
 
     # Database
     # Thay sqlite bằng PostgreSQL (miễn phí)
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://user:pass@localhost/dbname')
+    # TRONG FILE config.py
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL').replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT
